@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>To-Do List</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; }
+    h1 { color: #333; }
+    input[type="text"] { padding: 8px; width: 300px; }
+    button { padding: 8px 12px; margin-left: 8px; }
+    ul { list-style: none; padding: 0; }
+    li { padding: 6px; border-bottom: 1px solid #ccc; display: flex; justify-content: space-between; }
+  </style>
+</head>
+<body>
+
+  <h1>To-Do List</h1>
+  <input type="text" id="taskInput" placeholder="Enter a new task..." />
+  <button onclick="addTask()">Add</button>
+
+  <ul id="todoList"></ul>
+
+  <script>
+    const API_URL = '/todos'; // ✅ FIXED
+
+    async function fetchTasks() {
+      const response = await fetch(API_URL);
+      const tasks = await response.json();
+      const list = document.getElementById('todoList');
+      list.innerHTML = '';
+      tasks.forEach(task => {
+        const li = document.createElement('li');
+        li.textContent = task.task;
+        const delBtn = document.createElement('button');
+        delBtn.textContent = 'Delete';
+        delBtn.onclick = () => deleteTask(task.id);
+        li.appendChild(delBtn);
+        list.appendChild(li);
+      });
+    }
+
+    async function addTask() {
+      const input = document.getElementById('taskInput');
+      const task = input.value.trim();
+      if (task === '') return;
+      await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ task })
+      });
+      input.value = '';
+      fetchTasks();
+    }
+
+    async function deleteTask(id) {
+      await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+      fetchTasks();
+    }
+
+    fetchTasks();
+  </script>
+
+</body>
+</html>
